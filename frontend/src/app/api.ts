@@ -1,4 +1,5 @@
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+// @ts-ignore
+const API_BASE: string = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
 
 function getToken(): string | null {
   return localStorage.getItem("token");
