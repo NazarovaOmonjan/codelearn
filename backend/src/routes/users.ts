@@ -142,3 +142,31 @@ usersRouter.put("/:id", authenticate, requireAdmin, async (req: AuthRequest, res
     next(error);
   }
 });
+
+
+// DELETE /api/users/:id (admin only)
+usersRouter.delete("/:id", authenticate, requireAdmin, async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) throw new AppError("Invalid user ID", 400);
+
+    // Don't allow deleting yourself
+    if (id === req.user!.id) {
+      throw new AppError("Cannot delete your own account", 400);
+    }
+
+    await prisma.user.delete({ where: { id } });
+
+    await prisma.adminLog.create({
+      data: {
+        adminId: req.user!.id,
+        action: "DELETE_USER",
+        details: JSON.stringify({ userId: id }),
+      },
+    });
+
+    res.json({ status: "success", message: "User deleted" });
+  } catch (error) {
+    next(error);
+  }
+});

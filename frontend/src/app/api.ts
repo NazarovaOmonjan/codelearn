@@ -89,6 +89,8 @@ export const api = {
     get: (id: number) => request(`/users/${id}`),
 
     update: (id: number, data: any) => request(`/users/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+
+    delete: (id: number) => request(`/users/${id}`, { method: "DELETE" }),
   },
 
   leaderboard: {

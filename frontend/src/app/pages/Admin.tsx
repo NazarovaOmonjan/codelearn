@@ -1342,6 +1342,19 @@ function UsersTab() {
     }
   };
 
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return;
+    if (!confirm(`Удалить пользователя ${selectedUser.name} ${selectedUser.surname}?`)) return;
+    try {
+      await api.users.delete(selectedUser.id);
+      setUsers(users.filter((u) => u.id !== selectedUser.id));
+      setSelectedUser(null);
+      alert("Пользователь удалён");
+    } catch (err: any) {
+      alert("Ошибка: " + (err.message || "Не удалось удалить"));
+    }
+  };
+
   const handleSendMessage = async () => {
     if (!selectedUser || !messageText.trim()) return;
     try {
@@ -1487,6 +1500,13 @@ function UsersTab() {
                 >
                   <Save className="w-4 h-4" />
                   Сохранить изменения
+                </button>
+                <button
+                  onClick={handleDeleteUser}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm mt-2"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Удалить пользователя
                 </button>
               </div>
 
