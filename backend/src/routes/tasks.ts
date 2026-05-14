@@ -12,8 +12,9 @@ const createTaskSchema = z.object({
   category: z.string().min(2),
   difficulty: z.number().min(1).max(100),
   points: z.number().min(1),
-  languages: z.array(z.string()),
-  solutions: z.record(z.string()),
+  languages: z.array(z.string()).optional(),
+  solutions: z.record(z.string()).optional(),
+  solution: z.string().optional(),
 });
 
 // GET /api/tasks
@@ -127,6 +128,12 @@ tasksRouter.post("/", authenticate, requireAdmin, async (req: AuthRequest, res: 
   try {
     const data = createTaskSchema.parse(req.body);
 
+    // Build languages and solutions from category if not provided
+    const langMap: Record<string, string> = { "SQL": "SQL", "Python": "PYTHON", "Node.js": "NODEJS", "Java": "JAVA", "C++": "CPP" };
+    const apiLang = langMap[data.category] || data.category;
+    const languages = data.languages || [apiLang];
+    const solutions = data.solutions || (data.solution ? { [apiLang]: data.solution } : {});
+
     const task = await prisma.task.create({
       data: {
         title: data.title,
@@ -134,8 +141,8 @@ tasksRouter.post("/", authenticate, requireAdmin, async (req: AuthRequest, res: 
         category: data.category,
         difficulty: data.difficulty,
         points: data.points,
-        languages: JSON.stringify(data.languages),
-        solutions: JSON.stringify(data.solutions),
+        languages: JSON.stringify(languages),
+        solutions: JSON.stringify(solutions),
       },
     });
 
@@ -147,7 +154,7 @@ tasksRouter.post("/", authenticate, requireAdmin, async (req: AuthRequest, res: 
       },
     });
 
-    res.status(201).json({ status: "success", data: { ...task, languages: data.languages, solutions: data.solutions } });
+    res.status(201).json({ status: "success", data: { ...task, languages, solutions } });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return next(new AppError(error.errors[0].message, 400));
