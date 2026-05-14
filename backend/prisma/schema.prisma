@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int       @id @default(autoincrement())
+  name        String
+  surname     String
+  email       String    @unique
+  password    String
+  city        String?
+  school      String?
+  grade       String?
+  level       Int       @default(1)
+  points      Int       @default(0)
+  language    String    @default("RU")
+  role        String    @default("USER")
+  avatar      String?
+  telegram    String?
+  phone       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lastLoginAt DateTime?
+
+  submissions Submission[]
+  adminLogs   AdminLog[]
+
+  @@map("users")
+}
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  category    String
+  difficulty  Int
+  points      Int
+  languages   String
+  solutions   String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  submissions Submission[]
+
+  @@map("tasks")
+}
+
+model Submission {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  taskId    Int
+  language  String
+  code      String
+  result    String   @default("PENDING")
+  points    Int      @default(0)
+  output    String?
+  error     String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("submissions")
+}
+
+model AdminLog {
+  id        Int      @id @default(autoincrement())
+  adminId   Int
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+
+  admin User @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@map("admin_logs")
+}
+
+model PasswordReset {
+  id        Int      @id @default(autoincrement())
+  email     String
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("password_resets")
+}
