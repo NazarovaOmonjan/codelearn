@@ -18,7 +18,7 @@ export function Layout() {
   const navLinks = [
     { path: "/", label: t("nav.home") },
     { path: "/tasks", label: t("nav.tasks") },
-    { path: "/profile", label: t("nav.profile") },
+    ...(!isAdmin ? [{ path: "/profile", label: t("nav.profile") }] : []),
     { path: "/leaderboard", label: t("nav.leaderboard") },
     { path: "/olympiads", label: t("nav.olympiads") },
     { path: "/tests", label: t("nav.tests") },
@@ -107,7 +107,7 @@ export function Layout() {
               {isLoggedIn ? (
                 <div className="flex items-center gap-2">
                   <Link
-                    to="/profile"
+                    to={isAdmin ? "/admin" : "/profile"}
                     className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm"
                   >
                     <User className="w-4 h-4" />
