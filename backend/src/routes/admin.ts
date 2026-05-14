@@ -80,3 +80,24 @@ adminRouter.post("/message", async (req: AuthRequest, res: Response, next: NextF
     next(error);
   }
 });
+
+
+// GET /api/admin/submissions/:taskId — view all submissions for a task
+adminRouter.get("/submissions/:taskId", async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const taskId = parseInt(req.params.taskId as string);
+    if (isNaN(taskId)) return res.status(400).json({ status: "error", message: "Invalid task ID" });
+
+    const submissions = await prisma.submission.findMany({
+      where: { taskId },
+      orderBy: { createdAt: "desc" },
+      include: {
+        user: { select: { id: true, name: true, surname: true, email: true } },
+      },
+    });
+
+    res.json({ status: "success", data: submissions });
+  } catch (error) {
+    next(error);
+  }
+});

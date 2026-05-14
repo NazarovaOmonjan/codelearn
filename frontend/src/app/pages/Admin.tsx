@@ -213,6 +213,9 @@ function TasksTab() {
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [submissionsModal, setSubmissionsModal] = useState(false);
+  const [taskSubmissions, setTaskSubmissions] = useState<any[]>([]);
+  const [viewingTaskId, setViewingTaskId] = useState<number | null>(null);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -235,6 +238,17 @@ function TasksTab() {
       console.error("Failed to load tasks:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const viewSubmissions = async (taskId: number) => {
+    try {
+      const res = await api.admin.submissions(taskId);
+      setTaskSubmissions(res.data);
+      setViewingTaskId(taskId);
+      setSubmissionsModal(true);
+    } catch (err) {
+      alert("Ошибка загрузки ответов");
     }
   };
 
@@ -355,6 +369,13 @@ function TasksTab() {
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-end gap-2">
                     <button
+                      onClick={() => viewSubmissions(task.id)}
+                      className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors"
+                      title="Просмотр ответов"
+                    >
+                      <ClipboardList className="w-4 h-4" />
+                    </button>
+                    <button
                       onClick={() => openEdit(task)}
                       className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
                       title="Редактировать"
@@ -471,6 +492,36 @@ function TasksTab() {
               {editingTask ? "Сохранить" : "Создать"}
             </button>
           </div>
+        </div>
+      </Modal>
+
+      {/* Submissions Modal */}
+      <Modal
+        open={submissionsModal}
+        onClose={() => setSubmissionsModal(false)}
+        title={`Ответы на задачу #${viewingTaskId}`}
+      >
+        <div className="space-y-3 max-h-96 overflow-y-auto">
+          {taskSubmissions.length === 0 ? (
+            <p className="text-center text-gray-500 py-8">Ответов пока нет</p>
+          ) : (
+            taskSubmissions.map((sub: any) => (
+              <div key={sub.id} className={`p-4 rounded-lg border ${sub.result === "CORRECT" ? "border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800" : "border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-800"}`}>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-medium text-gray-900 dark:text-white text-sm">
+                    {sub.user?.name} {sub.user?.surname} ({sub.user?.email})
+                  </span>
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${sub.result === "CORRECT" ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300" : "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"}`}>
+                    {sub.result === "CORRECT" ? "Правильно" : "Неправильно"}
+                  </span>
+                </div>
+                <pre className="bg-gray-900 text-green-400 p-3 rounded text-xs overflow-x-auto whitespace-pre-wrap">{sub.code}</pre>
+                <div className="mt-2 text-xs text-gray-500">
+                  {new Date(sub.createdAt).toLocaleString()} • {sub.language} • {sub.points} баллов
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </Modal>
     </div>

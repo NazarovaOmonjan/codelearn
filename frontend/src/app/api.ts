@@ -108,6 +108,7 @@ export const api = {
     stats: () => request("/admin/stats"),
     sendMessage: (userId: number, message: string) =>
       request("/admin/message", { method: "POST", body: JSON.stringify({ userId, message }) }),
+    submissions: (taskId: number) => request(`/admin/submissions/${taskId}`),
   },
 
   health: () => request("/health"),
