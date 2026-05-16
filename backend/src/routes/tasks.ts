@@ -169,9 +169,26 @@ tasksRouter.put("/:id", authenticate, requireAdmin, async (req: AuthRequest, res
     const id = parseInt(req.params.id as string);
     if (isNaN(id)) throw new AppError("Invalid task ID", 400);
 
-    const updateData: any = { ...req.body };
-    if (updateData.languages) updateData.languages = JSON.stringify(updateData.languages);
-    if (updateData.solutions) updateData.solutions = JSON.stringify(updateData.solutions);
+    const body = { ...req.body };
+    const updateData: any = {};
+
+    // Only update fields that are provided
+    if (body.title) updateData.title = body.title;
+    if (body.description) updateData.description = body.description;
+    if (body.category) updateData.category = body.category;
+    if (body.difficulty !== undefined) updateData.difficulty = Number(body.difficulty);
+    if (body.points !== undefined) updateData.points = Number(body.points);
+    if (body.languages) updateData.languages = JSON.stringify(body.languages);
+    if (body.solutions) updateData.solutions = JSON.stringify(body.solutions);
+
+    // Handle "solution" field from admin panel (convert to "solutions" format)
+    if (body.solution && !body.solutions) {
+      const langMap: Record<string, string> = { "SQL": "SQL", "Python": "PYTHON", "Node.js": "NODEJS", "Java": "JAVA", "C++": "CPP" };
+      const category = body.category || "SQL";
+      const apiLang = langMap[category] || category;
+      updateData.solutions = JSON.stringify({ [apiLang]: body.solution });
+      updateData.languages = JSON.stringify([apiLang]);
+    }
 
     const task = await prisma.task.update({ where: { id }, data: updateData });
 
