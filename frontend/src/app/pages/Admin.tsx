@@ -258,17 +258,27 @@ function TasksTab() {
     setModalOpen(true);
   };
 
-  const openEdit = (task: Task) => {
-    setEditingTask(task);
-    setForm({
-      title: task.title,
-      description: task.description || "",
-      category: task.category,
-      difficulty: task.difficulty,
-      points: task.points,
-      solution: task.solution || "",
-    });
-    setModalOpen(true);
+  const openEdit = async (task: Task) => {
+    try {
+      // Load full task data including description and solution
+      const res = await api.tasks.get(task.id);
+      const fullTask = res.data;
+      const solutions = typeof fullTask.solutions === 'string' ? JSON.parse(fullTask.solutions) : (fullTask.solutions || {});
+      const solutionText = Object.values(solutions)[0] || "";
+      
+      setEditingTask(fullTask);
+      setForm({
+        title: fullTask.title || "",
+        description: fullTask.description || "",
+        category: fullTask.category || "SQL",
+        difficulty: fullTask.difficulty || 30,
+        points: fullTask.points || 10,
+        solution: solutionText as string,
+      });
+      setModalOpen(true);
+    } catch (err) {
+      alert("Ошибка загрузки задачи");
+    }
   };
 
   const handleSave = async () => {

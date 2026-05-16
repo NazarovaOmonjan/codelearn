@@ -105,6 +105,7 @@ tasksRouter.get("/:id", async (req: Request, res: Response, next: NextFunction) 
         difficulty: true,
         points: true,
         languages: true,
+        solutions: true,
         createdAt: true,
         _count: { select: { submissions: true } },
       },
@@ -116,7 +117,7 @@ tasksRouter.get("/:id", async (req: Request, res: Response, next: NextFunction) 
 
     res.json({
       status: "success",
-      data: { ...task, languages },
+      data: { ...task, languages, solutions: task.solutions },
     });
   } catch (error) {
     next(error);
